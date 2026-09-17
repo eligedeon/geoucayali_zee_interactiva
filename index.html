@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ZEE Ucayali | GeoUcayali</title>
+
+  <!-- ArcGIS Maps SDK for JavaScript 5.1 -->
+  <script type="module" src="https://js.arcgis.com/5.1/"></script>
+
+  <style>
+    :root{
+      --green-950:#063b2f;
+      --green-900:#0b4f3a;
+      --green-800:#0f684c;
+      --green-700:#14815e;
+      --paper:#f6faf8;
+      --ink:#17322b;
+      --muted:#6a7d76;
+      --line:#dce8e2;
+      --white:#fff;
+      --shadow:0 12px 32px rgba(9,73,53,.12);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+    body{overflow:hidden;background:#eef5f1}
+
+    .app{
+      height:100%;
+      display:grid;
+      grid-template-columns:minmax(300px,390px) 1fr;
+    }
+
+    .panel{
+      min-width:0;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      background:rgba(255,255,255,.98);
+      border-right:1px solid var(--line);
+      box-shadow:var(--shadow);
+      z-index:3;
+    }
+
+    .head{
+      padding:18px 17px 14px;
+      border-bottom:1px solid var(--line);
+      background:
+        radial-gradient(circle at 100% 0, rgba(69,164,111,.14), transparent 38%),
+        #fff;
+    }
+    .eyebrow{
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.13em;
+      text-transform:uppercase;
+      color:var(--green-700);
+      margin-bottom:5px;
+    }
+    h1{
+      margin:0;
+      font-size:19px;
+      line-height:1.15;
+      letter-spacing:-.02em;
+    }
+    .sub{
+      margin:7px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .tools{
+      padding:10px 12px;
+      border-bottom:1px solid var(--line);
+      background:#fbfdfc;
+    }
+    .search{
+      width:100%;
+      border:1px solid #d4e3dc;
+      border-radius:10px;
+      padding:10px 11px;
+      outline:none;
+      font-size:12px;
+      background:white;
+      color:var(--ink);
+    }
+    .search:focus{
+      border-color:#65a98d;
+      box-shadow:0 0 0 3px rgba(69,164,111,.10);
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:7px;
+      margin-top:8px;
+    }
+    .btn{
+      border:1px solid #d9e7e0;
+      background:#f2f8f5;
+      color:#255b49;
+      border-radius:9px;
+      padding:8px 9px;
+      font-size:11px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn:hover{background:#e7f3ed}
+    .counter{
+      margin-top:8px;
+      display:flex;
+      justify-content:space-between;
+      color:#7a8c86;
+      font-size:10px;
+    }
+
+    .list{
+      overflow:auto;
+      padding:7px 7px 18px;
+      flex:1;
+      scrollbar-width:thin;
+    }
+
+    .group-title{
+      position:sticky;
+      top:-7px;
+      z-index:2;
+      margin:8px 3px 4px;
+      padding:8px 7px 6px;
+      background:rgba(255,255,255,.95);
+      backdrop-filter:blur(5px);
+      color:#396b5a;
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      border-bottom:1px solid #edf3f0;
+    }
+
+    .item{
+      width:100%;
+      border:0;
+      display:grid;
+      grid-template-columns:19px 1fr 22px;
+      gap:8px;
+      align-items:center;
+      text-align:left;
+      border-radius:8px;
+      padding:7px 7px;
+      background:transparent;
+      cursor:pointer;
+      color:var(--ink);
+      transition:background .13s ease, opacity .13s ease;
+    }
+    .item:hover{background:#eef6f2}
+    .item.off{opacity:.38}
+    .item.off .swatch{filter:grayscale(85%)}
+    .swatch{
+      width:17px;
+      height:17px;
+      border-radius:3px;
+      border:1px solid rgba(0,0,0,.20);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);
+    }
+    .label{
+      min-width:0;
+      font-size:11px;
+      line-height:1.25;
+    }
+    .eye{
+      display:grid;
+      place-items:center;
+      width:21px;height:21px;
+      border-radius:6px;
+      font-size:12px;
+      font-weight:900;
+      color:#127251;
+      background:#eaf5ef;
+    }
+    .item.off .eye{
+      color:#83918c;
+      background:#f0f2f1;
+    }
+
+    .mapwrap{position:relative;min-width:0;height:100%}
+    arcgis-map{width:100%;height:100%;display:block}
+
+    .loading{
+      position:absolute;
+      inset:0;
+      z-index:8;
+      display:grid;
+      place-items:center;
+      background:rgba(244,249,246,.92);
+      color:#175c45;
+      font-size:13px;
+      font-weight:800;
+      transition:opacity .25s ease;
+    }
+    .loading.hide{opacity:0;pointer-events:none}
+
+    .mobile-toggle{display:none}
+
+    @media(max-width:760px){
+      .app{grid-template-columns:1fr}
+      .panel{
+        position:absolute;left:0;top:0;bottom:0;
+        width:min(88vw,370px);
+        transform:translateX(-100%);
+        transition:transform .25s ease;
+        z-index:10;
+      }
+      .panel.open{transform:none}
+      .mobile-toggle{
+        display:block;
+        position:absolute;left:12px;top:12px;z-index:11;
+        border:0;border-radius:10px;padding:10px 12px;
+        background:white;box-shadow:0 6px 20px rgba(0,0,0,.16);
+        color:#0b4f3a;font-weight:900;cursor:pointer;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="panel" id="panel">
+      <div class="head">
+        <div class="eyebrow">GeoUcayali · ZEE</div>
+        <h1>Unidades Ecológicas Económicas</h1>
+        <p class="sub">
+          Haz clic sobre el color o el nombre para encender o apagar una categoría.
+          La simbología corresponde al estándar oficial del layer ZEE.
+        </p>
+      </div>
+
+      <div class="tools">
+        <input id="search" class="search" type="search" placeholder="Buscar unidad ecológica económica…" />
+        <div class="actions">
+          <button class="btn" id="showAll">Mostrar todas</button>
+          <button class="btn" id="hideAll">Ocultar todas</button>
+        </div>
+        <div class="counter">
+          <span id="counter">0 visibles</span>
+          <span id="total">0 categorías</span>
+        </div>
+      </div>
+
+      <div class="list" id="categoryList"></div>
+    </aside>
+
+    <main class="mapwrap">
+      <button class="mobile-toggle" id="mobileToggle">☰ ZEE</button>
+
+      <arcgis-map id="mapEl" item-id="e093b2066f09481bbc60232dfb518133">
+        <arcgis-zoom slot="top-left"></arcgis-zoom>
+        <arcgis-home slot="top-left"></arcgis-home>
+      </arcgis-map>
+
+      <div class="loading" id="loading">Cargando ZEE y simbología oficial…</div>
+    </main>
+  </div>
+
+  <script type="module">
+    const cfg = await fetch("./ZEE_config_categorias_oficial.json").then(r => {
+      if (!r.ok) throw new Error("No se pudo cargar el archivo de configuración ZEE.");
+      return r.json();
+    });
+
+    const FeatureLayer = await $arcgis.import("@arcgis/core/layers/FeatureLayer.js");
+
+    const mapEl = document.getElementById("mapEl");
+    await mapEl.viewOnReady();
+
+    // Oculta la representación antigua del servicio Zee para evitar doble dibujo.
+    const original = mapEl.map.allLayers.find(
+      lyr => (lyr.title || "").toLowerCase() === (cfg.originalLayerTitle || "Zee").toLowerCase()
+    );
+    if (original) original.visible = false;
+
+    const categories = [...cfg.categories].sort((a,b) => a.orden - b.orden);
+    const visible = new Set(categories.map(c => Number(c.orden)));
+
+    function hexToRgb(hex){
+      const h = hex.replace("#","");
+      return [
+        parseInt(h.slice(0,2),16),
+        parseInt(h.slice(2,4),16),
+        parseInt(h.slice(4,6),16)
+      ];
+    }
+
+    // Renderer oficial por N_orden.
+    const renderer = {
+      type: "unique-value",
+      field: cfg.symbologyField || "N_orden",
+      uniqueValueInfos: categories.map(c => ({
+        value: Number(c.orden),
+        label: c.nombre_mostrado,
+        symbol: {
+          type: "simple-fill",
+          color: c.hex,
+          outline: {
+            color: [...hexToRgb(c.contorno_hex || "#686868"), 0.25],
+            width: Number(c.ancho_contorno || 0.4)
+          }
+        }
+      }))
+    };
+
+    const zeeLayer = new FeatureLayer({
+      url: cfg.serviceUrl,
+      title: "ZEE - Unidades Ecológicas Económicas",
+      outFields: ["*"],
+      renderer,
+      popupEnabled: true
+    });
+
+    mapEl.map.add(zeeLayer);
+
+    try{
+      await zeeLayer.load();
+    }catch(err){
+      console.error(err);
+      document.getElementById("loading").textContent =
+        "No se pudo cargar la capa ZEE. Revisa acceso/CORS del MapServer.";
+      throw err;
+    }
+
+    const list = document.getElementById("categoryList");
+    const search = document.getElementById("search");
+    const counter = document.getElementById("counter");
+    const total = document.getElementById("total");
+
+    total.textContent = `${categories.length} categorías`;
+
+    function applyVisibility(){
+      const ids = [...visible].sort((a,b)=>a-b);
+      if(ids.length === categories.length){
+        zeeLayer.definitionExpression = "1=1";
+      }else if(ids.length === 0){
+        zeeLayer.definitionExpression = "1=0";
+      }else{
+        zeeLayer.definitionExpression = `${cfg.filterField || "N_orden"} IN (${ids.join(",")})`;
+      }
+      counter.textContent = `${visible.size} visibles`;
+      render(search.value);
+    }
+
+    function toggle(order){
+      const n = Number(order);
+      if(visible.has(n)) visible.delete(n);
+      else visible.add(n);
+      applyVisibility();
+    }
+
+    function render(query=""){
+      const q = query.trim().toLowerCase();
+      const filtered = categories.filter(c =>
+        !q ||
+        c.nombre_mostrado.toLowerCase().includes(q) ||
+        c.gran_zona.toLowerCase().includes(q)
+      );
+
+      list.innerHTML = "";
+      let currentGroup = null;
+
+      filtered.forEach(c => {
+        if(c.gran_zona !== currentGroup){
+          currentGroup = c.gran_zona;
+          const g = document.createElement("div");
+          g.className = "group-title";
+          g.textContent = currentGroup;
+          list.appendChild(g);
+        }
+
+        const btn = document.createElement("button");
+        btn.className = "item" + (visible.has(Number(c.orden)) ? "" : " off");
+        btn.type = "button";
+        btn.title = visible.has(Number(c.orden))
+          ? "Clic para ocultar esta categoría"
+          : "Clic para mostrar esta categoría";
+
+        btn.innerHTML = `
+          <span class="swatch" style="background:${c.hex}"></span>
+          <span class="label">${escapeHtml(c.nombre_mostrado)}</span>
+          <span class="eye">${visible.has(Number(c.orden)) ? "●" : "○"}</span>
+        `;
+        btn.addEventListener("click", () => toggle(c.orden));
+        list.appendChild(btn);
+      });
+    }
+
+    function escapeHtml(value){
+      return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    search.addEventListener("input", e => render(e.target.value));
+
+    document.getElementById("showAll").addEventListener("click", () => {
+      categories.forEach(c => visible.add(Number(c.orden)));
+      applyVisibility();
+    });
+
+    document.getElementById("hideAll").addEventListener("click", () => {
+      visible.clear();
+      applyVisibility();
+    });
+
+    document.getElementById("mobileToggle").addEventListener("click", () => {
+      document.getElementById("panel").classList.toggle("open");
+    });
+
+    render();
+    counter.textContent = `${visible.size} visibles`;
+    document.getElementById("loading").classList.add("hide");
+  </script>
+</body>
+</html>

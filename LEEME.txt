@@ -1,0 +1,25 @@
+VISOR ZEE INTERACTIVO - GEOUCAYALI
+
+Archivos:
+- index.html
+- ZEE_config_categorias_oficial.json
+
+Funcionamiento:
+1. Carga el Web Map e093b2066f09481bbc60232dfb518133.
+2. Oculta la representación original "Zee".
+3. Carga ZEE_UCAYALI_FINAL desde:
+   https://ider.regionucayali.gob.pe/geoservicios/rest/services/dgt/zee/MapServer/0
+4. Aplica la paleta oficial extraída de ZEE_UCAYALI_FINAL.lyrx.
+5. La lista de categorías viene del Excel ZEE_2017.xlsx.
+6. Al pulsar una categoría, modifica la definición por N_orden y la oculta/muestra.
+
+PUBLICACIÓN RÁPIDA
+- Subir index.html y ZEE_config_categorias_oficial.json al mismo repositorio/carpeta.
+- Publicar mediante GitHub Pages o el servidor de GeoUcayali.
+- Probar primero la URL directamente en el navegador.
+- En Experience Builder: widget Incorporar/Embed -> URL publicada.
+- Si EBDE conserva una versión anterior, añadir ?v=1, ?v=2, etc. a la URL.
+
+NOTA
+Si aparece un mensaje de CORS, el ArcGIS Server de IDER deberá permitir el origen
+desde el cual se publique el visor (GitHub Pages o geoucayali.regionucayali.gob.pe).
