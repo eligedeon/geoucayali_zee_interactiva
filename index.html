@@ -311,6 +311,28 @@
 
     try {
       await zeeLayer.load();
+
+      // ======================================================
+      // VISTA INICIAL DE LA ZEE
+      // Ajusta automáticamente el mapa a toda la extensión
+      // de la capa ZEE de Ucayali.
+      // ======================================================
+      if (zeeLayer.fullExtent) {
+        view.padding = {
+          top: 90,
+          right: 25,
+          bottom: 25,
+          left: 25
+        };
+
+        await view.goTo(
+          zeeLayer.fullExtent.expand(1.03),
+          {
+            animate: false
+          }
+        );
+      }
+
     } catch (err) {
       console.error(err);
       document.getElementById("loading").textContent = "No se pudo cargar la ZEE desde el ArcGIS Server de IDER.";
