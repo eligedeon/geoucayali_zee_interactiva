@@ -252,6 +252,7 @@
     const MapImageLayer = await $arcgis.import("@arcgis/core/layers/MapImageLayer.js");
     const Search = await $arcgis.import("@arcgis/core/widgets/Search.js");
     const Locate = await $arcgis.import("@arcgis/core/widgets/Locate.js");
+    const Home = await $arcgis.import("@arcgis/core/widgets/Home.js");
     const Compass = await $arcgis.import("@arcgis/core/widgets/Compass.js");
     const ScaleBar = await $arcgis.import("@arcgis/core/widgets/ScaleBar.js");
     const Fullscreen = await $arcgis.import("@arcgis/core/widgets/Fullscreen.js");
@@ -309,6 +310,8 @@
 
     mapEl.map.add(zeeLayer);
 
+    let initialViewpoint;
+
     try {
       await zeeLayer.load();
 
@@ -344,6 +347,10 @@
     // Widgets de mapa
     const searchWidget = new Search({ view });
     const locateWidget = new Locate({ view });
+    const homeWidget = new Home({
+      view,
+      viewpoint: initialViewpoint
+    });
     const compassWidget = new Compass({ view });
     const scaleBar = new ScaleBar({ view, unit: "metric" });
     const fullscreen = new Fullscreen({ view });
@@ -353,6 +360,7 @@
 
     view.ui.add(searchWidget, "top-right");
     view.ui.add(locateWidget, "top-left");
+    view.ui.add(homeWidget, "top-left");
     view.ui.add(compassWidget, "top-left");
     view.ui.add(fullscreen, "top-left");
     view.ui.add(scaleBar, "bottom-left");
